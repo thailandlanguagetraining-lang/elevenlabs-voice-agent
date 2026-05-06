@@ -1,20 +1,21 @@
 import React, { useCallback } from 'react';
-import { useConversation, ConversationProvider } from '@elevenlabs/react';
+import { useConversation } from '@elevenlabs/react';
 
-function ConversationComponent() {
-  const conversation = useConversation();
+const AGENT_ID = 'agent_5701kqrx6wrzeacvwwjkmsxp78rx';
+
+function App() {
+  const conversation = useConversation({
+    onConnect: () => console.log('Connected'),
+    onDisconnect: () => console.log('Disconnected'),
+    onError: (error) => console.error('SDK Error:', error),
+  });
 
   const startCall = useCallback(async () => {
     try {
-      // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log("Microphone access granted");
 
-      // Small delay to ensure hardware is ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Start the session (agentId is already provided in the ConversationProvider)
-      await conversation.startSession();
+      // ✅ Pass agentId directly here — this is what was missing
+      await conversation.startSession({ agentId: AGENT_ID });
     } catch (error) {
       console.error('Failed to start conversation:', error);
     }
@@ -29,18 +30,18 @@ function ConversationComponent() {
       <h1>My AI Agent</h1>
       <p>Status: <strong>{conversation.status}</strong></p>
       <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
-      
+
       <div style={{ marginTop: '20px' }}>
-        <button 
-          onClick={startCall} 
+        <button
+          onClick={startCall}
           disabled={conversation.status === 'connected'}
           style={{ padding: '10px 20px', marginRight: '10px', cursor: 'pointer' }}
         >
           Start Call
         </button>
-        
-        <button 
-          onClick={endCall} 
+
+        <button
+          onClick={endCall}
           disabled={conversation.status !== 'connected'}
           style={{ padding: '10px 20px', cursor: 'pointer' }}
         >
@@ -48,19 +49,6 @@ function ConversationComponent() {
         </button>
       </div>
     </div>
-  );
-}
-
-function App() {
-  const AGENT_ID = 'agent_5701kqrx6wrzeacvwwjkmsxp78rx';
-
-  return (
-    <ConversationProvider 
-      agentId={AGENT_ID}
-      onError={(error) => console.error("SDK Error:", error)}
-    >
-      <ConversationComponent />
-    </ConversationProvider>
   );
 }
 
