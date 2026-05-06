@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
-import { useConversation } from '@elevenlabs/react';
+import { useConversation, ConversationProvider } from '@elevenlabs/react';
 
 const AGENT_ID = 'agent_5701kqrx6wrzeacvwwjkmsxp78rx';
 
-function App() {
+function ConversationComponent() {
   const conversation = useConversation({
     onConnect: () => console.log('Connected'),
     onDisconnect: () => console.log('Disconnected'),
@@ -14,7 +14,7 @@ function App() {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // ✅ Pass agentId directly here — this is what was missing
+      // ✅ agentId passed here — this is the key fix
       await conversation.startSession({ agentId: AGENT_ID });
     } catch (error) {
       console.error('Failed to start conversation:', error);
@@ -49,6 +49,14 @@ function App() {
         </button>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ConversationProvider>
+      <ConversationComponent />
+    </ConversationProvider>
   );
 }
 
