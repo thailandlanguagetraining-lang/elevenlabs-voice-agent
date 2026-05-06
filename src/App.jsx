@@ -1,40 +1,39 @@
 import React, { useCallback } from 'react';
-import { useConversation, ConversationProvider } from '@elevenlabs/react';
+import { ConversationProvider, useConversationControls, useConversationStatus, useConversationMode } from '@elevenlabs/react';
 
 const AGENT_ID = 'agent_5701kqrx6wrzeacvwwjkmsxp78rx';
 
 function ConversationComponent() {
-  const conversation = useConversation({
-    onConnect: () => console.log('Connected'),
-    onDisconnect: () => console.log('Disconnected'),
-    onError: (error) => console.error('SDK Error:', error),
-  });
+  const { startSession, endSession } = useConversationControls();
+  const { status } = useConversationStatus();
+  const { mode } = useConversationMode();
 
   const startCall = useCallback(async () => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-
-      // ✅ agentId passed here — this is the key fix
-      await conversation.startSession({ agentId: AGENT_ID });
+      await startSession({
+        onConnect: ({ conversationId }) => console.log('Connected:', conversationId),
+        onError: (message) => console.error('Error:', message),
+      });
     } catch (error) {
       console.error('Failed to start conversation:', error);
     }
-  }, [conversation]);
+  }, [startSession]);
 
   const endCall = useCallback(async () => {
-    await conversation.endSession();
-  }, [conversation]);
+    await endSession();
+  }, [endSession]);
 
   return (
     <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
       <h1>My AI Agent</h1>
-      <p>Status: <strong>{conversation.status}</strong></p>
-      <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
+      <p>Status: <strong>{status}</strong></p>
+      <p>Agent is {mode?.mode === 'speaking' ? 'speaking' : 'listening'}</p>
 
       <div style={{ marginTop: '20px' }}>
         <button
           onClick={startCall}
-          disabled={conversation.status === 'connected'}
+          disabled={status === 'connected'}
           style={{ padding: '10px 20px', marginRight: '10px', cursor: 'pointer' }}
         >
           Start Call
@@ -42,7 +41,7 @@ function ConversationComponent() {
 
         <button
           onClick={endCall}
-          disabled={conversation.status !== 'connected'}
+          disabled={status !== 'connected'}
           style={{ padding: '10px 20px', cursor: 'pointer' }}
         >
           End Call
@@ -54,7 +53,7 @@ function ConversationComponent() {
 
 function App() {
   return (
-    <ConversationProvider>
+    <ConversationProvider agentId={AGENT_ID}>
       <ConversationComponent />
     </ConversationProvider>
   );
